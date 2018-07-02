@@ -27,6 +27,7 @@ func (daemon *Daemon) CreateManagedContainer(params types.ContainerCreateConfig)
 }
 
 // ContainerCreate creates a regular container
+// 对/containers/create的实际处理函数
 func (daemon *Daemon) ContainerCreate(params types.ContainerCreateConfig) (containertypes.ContainerCreateCreatedBody, error) {
 	return daemon.containerCreate(params, false)
 }

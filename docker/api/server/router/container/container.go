@@ -28,6 +28,7 @@ func (r *containerRouter) Routes() []router.Route {
 }
 
 // initRoutes initializes the routes in container router
+//CreateContainer 和handler router
 func (r *containerRouter) initRoutes() {
 	r.routes = []router.Route{
 		// HEAD

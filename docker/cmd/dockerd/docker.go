@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// docker demon 命令
 func newDaemonCommand() *cobra.Command {
 	opts := newDaemonOptions(config.New())
 
@@ -25,7 +26,7 @@ func newDaemonCommand() *cobra.Command {
 		Args:          cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.flags = cmd.Flags()
-			return runDaemon(opts)
+			return runDaemon(opts) // 通过
 		},
 		DisableFlagsInUseLine: true,
 		Version:               fmt.Sprintf("%s, build %s", dockerversion.Version, dockerversion.GitCommit),

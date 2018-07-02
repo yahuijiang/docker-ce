@@ -71,6 +71,7 @@ func NewDaemonCli() *DaemonCli {
 	return &DaemonCli{}
 }
 
+//// 通过命令行 将deamon start 起来
 func (cli *DaemonCli) start(opts *daemonOptions) (err error) {
 	stopc := make(chan bool)
 	defer close(stopc)
@@ -162,6 +163,7 @@ func (cli *DaemonCli) start(opts *daemonOptions) (err error) {
 		logrus.Fatalf("Error creating middlewares: %v", err)
 	}
 
+	// 初始化daemon类，daemon 中包含对各种请求的处理的handler
 	d, err := daemon.NewDaemon(cli.Config, registryService, containerdRemote, pluginStore)
 	if err != nil {
 		return fmt.Errorf("Error starting daemon: %v", err)
@@ -241,9 +243,11 @@ type routerOptions struct {
 	buildBackend   *buildbackend.Backend
 	buildCache     *fscache.FSCache // legacy
 	buildkit       *buildkit.Builder
-	daemon         *daemon.Daemon
-	api            *apiserver.Server
-	cluster        *cluster.Cluster
+	// deamon 类继承了/api/server/router/container/backend.go 中的 Backend接口，daemon
+	// 中包含了对各种请求的处理handler
+	daemon  *daemon.Daemon
+	api     *apiserver.Server
+	cluster *cluster.Cluster
 }
 
 func newRouterOptions(config *config.Config, daemon *daemon.Daemon) (routerOptions, error) {
@@ -456,6 +460,7 @@ func loadDaemonCliConfig(opts *daemonOptions) (*config.Config, error) {
 	return conf, nil
 }
 
+// 初始化docker daemon router
 func initRouter(opts routerOptions) {
 	decoder := runconfig.ContainerDecoder{}
 
