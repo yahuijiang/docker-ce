@@ -40,6 +40,7 @@ type HealthConfig struct {
 // Non-portable information *should* appear in HostConfig.
 // All fields added to this struct must be marked `omitempty` to keep getting
 // predictable hashes from the old `v1Compatibility` configuration.
+// container 的配置文件数据 --yahjiang
 type Config struct {
 	Hostname        string              // Hostname
 	Domainname      string              // Domainname

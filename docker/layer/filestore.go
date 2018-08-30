@@ -28,6 +28,7 @@ var (
 	}
 )
 
+// matadata 文件的根目录  --yahjiang
 type fileMetadataStore struct {
 	root string
 }

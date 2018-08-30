@@ -232,6 +232,13 @@ func (a *Driver) Exists(id string) bool {
 
 // CreateReadWrite creates a layer that is writable for use as a container
 // file system.
+// 创建读写层  yahjiang
+/**
+实际就是在root path 下面创建:
+	1. root_path/mnt/image_id 文件夹
+	2. root_path/diff/image_id 文件夹
+	3. root_path/layer/image_id metadata 文件，此文件包好父层的所有信息
+*/
 func (a *Driver) CreateReadWrite(id, parent string, opts *graphdriver.CreateOpts) error {
 	return a.Create(id, parent, opts)
 }
@@ -243,11 +250,13 @@ func (a *Driver) Create(id, parent string, opts *graphdriver.CreateOpts) error {
 	if opts != nil && len(opts.StorageOpt) != 0 {
 		return fmt.Errorf("--storage-opt is not supported for aufs")
 	}
-
+	// 创建	<aufs_root_path>/mnt/<image_id>
+	// <aufs_root_path>/diff/<image_id>
 	if err := a.createDirsFor(id); err != nil {
 		return err
 	}
 	// Write the layers metadata
+	// 创建<aufs_root_path>/layers/<image_id>文件 metadata 文件
 	f, err := os.Create(path.Join(a.rootPath(), "layers", id))
 	if err != nil {
 		return err
@@ -255,11 +264,12 @@ func (a *Driver) Create(id, parent string, opts *graphdriver.CreateOpts) error {
 	defer f.Close()
 
 	if parent != "" {
+		// 得到所有的parent layer 的ID
 		ids, err := getParentIDs(a.rootPath(), parent)
 		if err != nil {
 			return err
 		}
-
+		// 将parent layer 的信息写入到metadata 文件
 		if _, err := fmt.Fprintln(f, parent); err != nil {
 			return err
 		}
@@ -275,6 +285,10 @@ func (a *Driver) Create(id, parent string, opts *graphdriver.CreateOpts) error {
 
 // createDirsFor creates two directories for the given id.
 // mnt and diff
+/** 创建	 <aufs_root_path>/mnt/<image_id>
+and <aufs_root_path>/diff/<image_id> 两个路径 “干嘛用的”？？ yahjiang
+
+*/
 func (a *Driver) createDirsFor(id string) error {
 	paths := []string{
 		"mnt",

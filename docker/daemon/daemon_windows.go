@@ -45,10 +45,12 @@ func getPluginExecRoot(root string) string {
 	return filepath.Join(root, "plugins")
 }
 
+// do nothing  yahjiang
 func (daemon *Daemon) parseSecurityOpt(container *container.Container, hostConfig *containertypes.HostConfig) error {
 	return parseSecurityOpt(container, hostConfig)
 }
 
+// do nothing
 func parseSecurityOpt(container *container.Container, config *containertypes.HostConfig) error {
 	return nil
 }
@@ -67,6 +69,7 @@ func (daemon *Daemon) getCgroupDriver() string {
 
 // adaptContainerSettings is called during container creation to modify any
 // settings necessary in the HostConfig structure.
+// do nothing now. --yahjiang
 func (daemon *Daemon) adaptContainerSettings(hostConfig *containertypes.HostConfig, adjustCPUShares bool) error {
 	if hostConfig == nil {
 		return nil
@@ -193,7 +196,7 @@ func verifyContainerResources(resources *containertypes.Resources, isHyperv bool
 // hostconfig and config structures.
 func verifyPlatformContainerSettings(daemon *Daemon, hostConfig *containertypes.HostConfig, config *containertypes.Config, update bool) ([]string, error) {
 	warnings := []string{}
-
+	// windows 只支持通过hyper-v 形式的container  yahjiang
 	hyperv := daemon.runAsHyperVContainer(hostConfig)
 	if !hyperv && system.IsWindowsClient() && !system.IsIoTCore() {
 		// @engine maintainers. This block should not be removed. It partially enforces licensing

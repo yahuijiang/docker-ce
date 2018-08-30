@@ -45,16 +45,19 @@ type InitFunc func(root string, options []string, uidMaps, gidMaps []idtools.IDM
 // interface and use the NaiveDiffDriver wrapper constructor.
 //
 // Use of ProtoDriver directly by client code is not recommended.
+// 用于管理容器的层 yahjiang
 type ProtoDriver interface {
 	// String returns a string representation of this driver.
 	String() string
 	// CreateReadWrite creates a new, empty filesystem layer that is ready
 	// to be used as the storage for a container. Additional options can
 	// be passed in opts. parent may be "" and opts may be nil.
+	// 创建空的fs层
 	CreateReadWrite(id, parent string, opts *CreateOpts) error
 	// Create creates a new, empty, filesystem layer with the
 	// specified id and parent and options passed in opts. Parent
 	// may be "" and opts may be nil.
+	// 创建空的fs层，但是指定id 和父层 --yahjiang
 	Create(id, parent string, opts *CreateOpts) error
 	// Remove attempts to remove the filesystem layer with this id.
 	Remove(id string) error
@@ -81,6 +84,7 @@ type ProtoDriver interface {
 }
 
 // DiffDriver is the interface to use to implement graph diffs
+// 用于比较两个不同的层之间的差异 yahjiang
 type DiffDriver interface {
 	// Diff produces an archive of the changes between the specified
 	// layer and its parent layer which may be "".

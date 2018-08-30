@@ -125,18 +125,28 @@ func (daemon *Daemon) Register(c *container.Container) error {
 	return c.CheckpointTo(daemon.containersReplica)
 }
 
+// 创建的container  --yahjiang
+/**
+name: container 名字
+operatingSystem : container 操作系统
+config： container 配置
+hostConfig：宿主机的配置
+
+*/
 func (daemon *Daemon) newContainer(name string, operatingSystem string, config *containertypes.Config, hostConfig *containertypes.HostConfig, imgID image.ID, managed bool) (*container.Container, error) {
 	var (
 		id             string
 		err            error
 		noExplicitName = name == ""
 	)
+	// container 的ID 和名字 --yahjiang
 	id, name, err = daemon.generateIDAndName(name)
 	if err != nil {
 		return nil, err
 	}
 
 	if hostConfig.NetworkMode.IsHost() {
+		// 如果network是host 模式， 则container 名字设置成主机名字
 		if config.Hostname == "" {
 			config.Hostname, err = os.Hostname()
 			if err != nil {
@@ -196,6 +206,7 @@ func (daemon *Daemon) getEntrypointAndArgs(configEntrypoint strslice.StrSlice, c
 	return configCmd[0], configCmd[1:]
 }
 
+// 将id 的前12个字符作container 的hostname --yajiang
 func (daemon *Daemon) generateHostname(id string, config *containertypes.Config) {
 	// Generate default hostname
 	if config.Hostname == "" {
@@ -203,6 +214,7 @@ func (daemon *Daemon) generateHostname(id string, config *containertypes.Config)
 	}
 }
 
+// do nothing --yahjiang
 func (daemon *Daemon) setSecurityOptions(container *container.Container, hostConfig *containertypes.HostConfig) error {
 	container.Lock()
 	defer container.Unlock()
@@ -234,6 +246,7 @@ func (daemon *Daemon) setHostConfig(container *container.Container, hostConfig *
 func (daemon *Daemon) verifyContainerSettings(platform string, hostConfig *containertypes.HostConfig, config *containertypes.Config, update bool) ([]string, error) {
 	// First perform verification of settings common across all platforms.
 	if config != nil {
+		// working dir  需要是个绝对路径  yahjiang
 		if config.WorkingDir != "" {
 			wdInvalid := false
 			if runtime.GOOS == platform {
@@ -254,6 +267,7 @@ func (daemon *Daemon) verifyContainerSettings(platform string, hostConfig *conta
 		}
 
 		if len(config.StopSignal) > 0 {
+			//检查 stopSignal 的正确性 yahjiang
 			_, err := signal.ParseSignal(config.StopSignal)
 			if err != nil {
 				return nil, err
@@ -304,6 +318,7 @@ func (daemon *Daemon) verifyContainerSettings(platform string, hostConfig *conta
 	}
 
 	for _, extraHost := range hostConfig.ExtraHosts {
+		// 验证extraHost 配置合法性： name: ip 形式 yahjiang
 		if _, err := opts.ValidateExtraHost(extraHost); err != nil {
 			return nil, err
 		}
@@ -323,7 +338,7 @@ func (daemon *Daemon) verifyContainerSettings(platform string, hostConfig *conta
 	}
 
 	p := hostConfig.RestartPolicy
-
+	// 处理重启规则  yahjiang
 	switch p.Name {
 	case "always", "unless-stopped", "no":
 		if p.MaximumRetryCount != 0 {

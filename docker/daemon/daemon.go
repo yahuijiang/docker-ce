@@ -70,7 +70,7 @@ var (
 type Daemon struct {
 	ID                string
 	repository        string
-	containers        container.Store
+	containers        container.Store // container store， 负责container store 中容器的增删改查 yahjiang
 	containersReplica container.ViewDB
 	execCommands      *exec.Store
 	imageService      *images.ImageService
@@ -565,6 +565,7 @@ func (daemon *Daemon) IsSwarmCompatible() error {
 
 // NewDaemon sets up everything for the daemon to be able to service
 // requests from the webserver.
+// 初始化daemon
 func NewDaemon(config *config.Config, registryService registry.Service, containerdRemote libcontainerd.Remote, pluginStore *plugin.Store) (daemon *Daemon, err error) {
 	setDefaultMtu(config)
 
@@ -591,6 +592,7 @@ func NewDaemon(config *config.Config, registryService registry.Service, containe
 		return nil, err
 	}
 
+	//初始化containerID 到hostID 的map
 	idMappings, err := setupRemappedRoot(config)
 	if err != nil {
 		return nil, err

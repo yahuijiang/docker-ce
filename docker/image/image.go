@@ -60,6 +60,10 @@ type V1Image struct {
 }
 
 // Image stores the image configuration
+// image 数据结构
+/**
+yahjiang
+*/
 type Image struct {
 	V1Image
 	Parent     ID        `json:"parent,omitempty"`
@@ -73,6 +77,7 @@ type Image struct {
 
 	// computedID is the ID computed from the hash of the image config.
 	// Not to be confused with the legacy V1 ID in V1Image.
+	// 通过image config 计算的hash值
 	computedID ID
 }
 

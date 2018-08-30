@@ -8,7 +8,7 @@
 // tar data for a read-only layer should match
 // the tar used to create the layer.
 package layer // import "github.com/docker/docker/layer"
-
+// 需要仔细研究 --yahjiang
 import (
 	"errors"
 	"io"
@@ -58,6 +58,7 @@ var (
 )
 
 // ChainID is the content-addressable ID of a layer.
+// layer ID yahjiang
 type ChainID digest.Digest
 
 // String returns a string rendition of a layer ID

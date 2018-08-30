@@ -11,7 +11,7 @@ import (
 type roLayer struct {
 	chainID    ChainID
 	diffID     DiffID
-	parent     *roLayer
+	parent     *roLayer // 上一层的只读layer, 也就是说rolayer 可以有子的rolayer
 	cacheID    string
 	size       int64
 	layerStore *layerStore

@@ -7,11 +7,12 @@ import (
 	"github.com/docker/docker/pkg/containerfs"
 )
 
+// mountedLayer
 type mountedLayer struct {
 	name       string
 	mountID    string
 	initID     string
-	parent     *roLayer
+	parent     *roLayer // 上一层的只读layer,也就是说不能基于 mountedlayer 添加新的layer
 	path       string
 	layerStore *layerStore
 

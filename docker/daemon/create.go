@@ -40,6 +40,7 @@ func (daemon *Daemon) containerCreate(params types.ContainerCreateConfig, manage
 
 	os := runtime.GOOS
 	if params.Config.Image != "" {
+		//根据配置获得docker container 的目标 image  yahjiang
 		img, err := daemon.imageService.GetImage(params.Config.Image)
 		if err == nil {
 			os = img.OS
@@ -47,11 +48,12 @@ func (daemon *Daemon) containerCreate(params types.ContainerCreateConfig, manage
 	} else {
 		// This mean scratch. On Windows, we can safely assume that this is a linux
 		// container. On other platforms, it's the host OS (which it already is)
+		//在window 上默认的docker container 系统是linux, why????  yahjiang
 		if runtime.GOOS == "windows" && system.LCOWSupported() {
 			os = "linux"
 		}
 	}
-
+	// 针对不同的平台 verify container 的设置
 	warnings, err := daemon.verifyContainerSettings(os, params.HostConfig, params.Config, false)
 	if err != nil {
 		return containertypes.ContainerCreateCreatedBody{Warnings: warnings}, errdefs.InvalidParameter(err)
@@ -69,7 +71,7 @@ func (daemon *Daemon) containerCreate(params types.ContainerCreateConfig, manage
 	if err != nil {
 		return containertypes.ContainerCreateCreatedBody{Warnings: warnings}, errdefs.InvalidParameter(err)
 	}
-
+	// 开始创建container --yahjiang
 	container, err := daemon.create(params, managed)
 	if err != nil {
 		return containertypes.ContainerCreateCreatedBody{Warnings: warnings}, err
@@ -80,6 +82,11 @@ func (daemon *Daemon) containerCreate(params types.ContainerCreateConfig, manage
 }
 
 // Create creates a new container from the given configuration with a given name.
+/**
+* yahjiang
+*
+*
+ */
 func (daemon *Daemon) create(params types.ContainerCreateConfig, managed bool) (retC *container.Container, retErr error) {
 	var (
 		container *container.Container
@@ -103,7 +110,7 @@ func (daemon *Daemon) create(params types.ContainerCreateConfig, managed bool) (
 			}
 		}
 		imgID = img.ID()
-
+		// system.LCOWSupported() :如果windows 宿主机支持linux container ，返回true
 		if runtime.GOOS == "windows" && img.OS == "linux" && !system.LCOWSupported() {
 			return nil, errors.New("operating system on which parent image was created is not Windows")
 		}
@@ -132,6 +139,7 @@ func (daemon *Daemon) create(params types.ContainerCreateConfig, managed bool) (
 		}
 	}()
 
+	// do nothing --yahjiang
 	if err := daemon.setSecurityOptions(container, params.HostConfig); err != nil {
 		return nil, err
 	}
@@ -156,6 +164,7 @@ func (daemon *Daemon) create(params types.ContainerCreateConfig, managed bool) (
 	}
 
 	// Set RWLayer for container after mount labels have been set
+	// 创建一个RWLayer
 	rwLayer, err := daemon.imageService.CreateLayer(container, setupInitLayer(daemon.idMappings))
 	if err != nil {
 		return nil, errdefs.System(err)
@@ -254,6 +263,7 @@ func (daemon *Daemon) generateSecurityOpt(hostConfig *containertypes.HostConfig)
 	return nil, nil
 }
 
+// 将img 的config 和创建 container 输入的config merge 起来 --yahjiang
 func (daemon *Daemon) mergeAndVerifyConfig(config *containertypes.Config, img *image.Image) error {
 	if img != nil && img.Config != nil {
 		if err := merge(config, img.Config); err != nil {

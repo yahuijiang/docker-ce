@@ -23,6 +23,7 @@ import (
 // by the container's active process. The output (and error) are actually
 // copied and delivered to all StdoutPipe and StderrPipe consumers, using
 // a kind of "broadcaster".
+// container 的标准输入输入设置 --yahjiang
 type Config struct {
 	sync.WaitGroup
 	stdout    *broadcaster.Unbuffered

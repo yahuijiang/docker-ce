@@ -26,12 +26,12 @@ type State struct {
 	OOMKilled         bool
 	RemovalInProgress bool // Not need for this to be persistent on disk.
 	Dead              bool
-	Pid               int
+	Pid               int    // container 在host machine 中的PID
 	ExitCodeValue     int    `json:"ExitCode"`
 	ErrorMsg          string `json:"Error"` // contains last known error during container start, stop, or remove
 	StartedAt         time.Time
 	FinishedAt        time.Time
-	Health            *Health
+	Health            *Health // container 的健康状态 --yahjiang
 
 	waitStop   chan struct{}
 	waitRemove chan struct{}
@@ -58,6 +58,7 @@ func (s StateStatus) Err() error {
 }
 
 // NewState creates a default state object with a fresh channel for state changes.
+// container 的状态。 使用两个管道来接收状态的改变 --yahjiang
 func NewState() *State {
 	return &State{
 		waitStop:   make(chan struct{}),

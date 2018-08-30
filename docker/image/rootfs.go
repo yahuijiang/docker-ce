@@ -21,7 +21,7 @@ const typeLayersWithBase = "layers+base"
 // this can be made into an interface that supports different implementations.
 type RootFS struct {
 	Type    string         `json:"type"`
-	DiffIDs []layer.DiffID `json:"diff_ids,omitempty"`
+	DiffIDs []layer.DiffID `json:"diff_ids,omitempty"` // 包含多个layerID -- yahjiang
 }
 
 // NewRootFS returns empty RootFS struct

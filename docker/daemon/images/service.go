@@ -62,6 +62,7 @@ func NewImageService(config ImageServiceConfig) *ImageService {
 }
 
 // ImageService provides a backend for image management
+// 对image 的管理
 type ImageService struct {
 	containers                containerStore
 	distributionMetadataStore metadata.Store
@@ -112,6 +113,7 @@ func (i *ImageService) Children(id image.ID) []image.ID {
 // CreateLayer creates a filesystem layer for a container.
 // called from create.go
 // TODO: accept an opt struct instead of container?
+// 创建layer yahjiang
 func (i *ImageService) CreateLayer(container *container.Container, initFunc layer.MountInit) (layer.RWLayer, error) {
 	var layerID layer.ChainID
 	if container.ImageID != "" {

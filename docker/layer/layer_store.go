@@ -27,14 +27,14 @@ import (
 const maxLayerDepth = 125
 
 type layerStore struct {
-	store       *fileMetadataStore
-	driver      graphdriver.Driver
+	store       *fileMetadataStore // metadata 文件的根目录
+	driver      graphdriver.Driver // 用于管理、比较不同的层
 	useTarSplit bool
 
-	layerMap map[ChainID]*roLayer
+	layerMap map[ChainID]*roLayer // 只读layer
 	layerL   sync.Mutex
 
-	mounts map[string]*mountedLayer
+	mounts map[string]*mountedLayer // mountedlayer
 	mountL sync.Mutex
 	os     string
 }
@@ -476,6 +476,14 @@ func (ls *layerStore) Release(l Layer) ([]Metadata, error) {
 	return ls.releaseLayer(layer)
 }
 
+// 创建读写层
+/**
+也就是新建一个mountedlayer, 然后加入到layerStore 中管理起来
+每一个mountedLayer 在系统中对应着三个文件夹
+root_path/mnt/mount_id
+root_path/diff/mount_id
+root_path/layer/mount_id
+*/
 func (ls *layerStore) CreateRWLayer(name string, parent ChainID, opts *CreateRWLayerOpts) (RWLayer, error) {
 	var (
 		storageOpt map[string]string
@@ -535,7 +543,7 @@ func (ls *layerStore) CreateRWLayer(name string, parent ChainID, opts *CreateRWL
 	createOpts := &graphdriver.CreateOpts{
 		StorageOpt: storageOpt,
 	}
-
+	// 创建新的读写层，也就是创建几个文件夹 yahjiang
 	if err = ls.driver.CreateReadWrite(m.mountID, pid, createOpts); err != nil {
 		return nil, err
 	}

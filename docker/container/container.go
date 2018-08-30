@@ -55,6 +55,7 @@ type ExitStatus struct {
 }
 
 // Container holds the structure defining a container object.
+// container 对象 --yahjiang
 type Container struct {
 	StreamConfig *stream.Config
 	// embed for Container to support states directly.
@@ -81,11 +82,12 @@ type Container struct {
 	HasBeenStartedBefore   bool
 	HasBeenManuallyStopped bool // used for unless-stopped restart policy
 	MountPoints            map[string]*volumemounts.MountPoint
-	HostConfig             *containertypes.HostConfig `json:"-"` // do not serialize the host config in the json, otherwise we'll make the container unportable
-	ExecCommands           *exec.Store                `json:"-"`
-	DependencyStore        agentexec.DependencyGetter `json:"-"`
-	SecretReferences       []*swarmtypes.SecretReference
-	ConfigReferences       []*swarmtypes.ConfigReference
+	// hostConfig ??? 干嘛用的？？ --yahjiang
+	HostConfig       *containertypes.HostConfig `json:"-"` // do not serialize the host config in the json, otherwise we'll make the container unportable
+	ExecCommands     *exec.Store                `json:"-"`
+	DependencyStore  agentexec.DependencyGetter `json:"-"`
+	SecretReferences []*swarmtypes.SecretReference
+	ConfigReferences []*swarmtypes.ConfigReference
 	// logDriver for closing
 	LogDriver      logger.Logger  `json:"-"`
 	LogCopier      *logger.Copier `json:"-"`
@@ -108,9 +110,18 @@ type Container struct {
 
 // NewBaseContainer creates a new container with its
 // basic configuration.
+/** baseContainer 需要设置：
+1. container id
+2. container 的初始状态
+3. container 的标准输入、输出设备
+4. 初始化exec store ？？？ 做什么的？？
+5. volume 的挂载点
+6. attachContext  ？？？ 做什么的？？ --yahjiang
+
+*/
 func NewBaseContainer(id, root string) *Container {
 	return &Container{
-		ID:            id,
+		ID:            id, // container ID
 		State:         NewState(),
 		ExecCommands:  exec.NewStore(),
 		Root:          root,
