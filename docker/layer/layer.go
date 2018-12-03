@@ -76,6 +76,7 @@ func (diffID DiffID) String() string {
 
 // TarStreamer represents an object which may
 // have its contents exported as a tar stream.
+// layerRelatedReading(yahjiang)
 type TarStreamer interface {
 	// TarStream returns a tar archive stream
 	// for the contents of a layer.
@@ -83,6 +84,7 @@ type TarStreamer interface {
 }
 
 // Layer represents a read-only layer
+// layerRelatedReading(yahjiang)
 type Layer interface {
 	TarStreamer
 
@@ -116,6 +118,7 @@ type Layer interface {
 
 // RWLayer represents a layer which is
 // read and writable
+// layerRelatedReading(yahjiang)
 type RWLayer interface {
 	TarStreamer
 
@@ -180,6 +183,8 @@ type CreateRWLayerOpts struct {
 
 // Store represents a backend for managing both
 // read-only and read-write layers.
+// layerRelatedReading(yahjiang)
+// 管理读写和只读的layer的后台。
 type Store interface {
 	Register(io.Reader, ChainID) (Layer, error)
 	Get(ChainID) (Layer, error)
