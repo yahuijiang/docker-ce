@@ -56,6 +56,7 @@ import (
 )
 
 // DaemonCli represents the daemon CLI.
+// Daemon 启动时候初始化一个deamonCli 对象
 type DaemonCli struct {
 	*config.Config
 	configFile *string
@@ -113,6 +114,7 @@ func (cli *DaemonCli) start(opts *daemonOptions) (err error) {
 		return err
 	}
 
+	// 创建pid file， 并保证在daemon shutdown 的时候清理掉
 	if cli.Pidfile != "" {
 		pf, err := pidfile.New(cli.Pidfile)
 		if err != nil {
@@ -131,6 +133,9 @@ func (cli *DaemonCli) start(opts *daemonOptions) (err error) {
 	}
 	cli.api = apiserver.New(serverConfig)
 
+	// 根据host 配置创建并监听相应的套接字
+	// 如果需要支持远程client 则创建tcp 套接字并监听
+	// 如果只支持本地client 则创建unix 套接字并监听
 	hosts, err := loadListeners(cli, serverConfig)
 	if err != nil {
 		return fmt.Errorf("Failed to load listeners: %v", err)
@@ -370,8 +375,10 @@ func shutdownDaemon(d *daemon.Daemon) {
 	}
 }
 
+// 主要作用为：将config file 中的设置和启动命令的flag 合并起来，并检测设置的正确性
+
 func loadDaemonCliConfig(opts *daemonOptions) (*config.Config, error) {
-	conf := opts.daemonConfig
+	conf := opts.daemonConfig // daemon command 的flag
 	flags := opts.flags
 	conf.Debug = opts.Debug
 	conf.Hosts = opts.Hosts
@@ -397,6 +404,7 @@ func loadDaemonCliConfig(opts *daemonOptions) (*config.Config, error) {
 	}
 
 	if opts.configFile != "" {
+		// 将config file 中的设置和启动命令的flag 合并起来
 		c, err := config.MergeDaemonConfigurations(conf, flags, opts.configFile)
 		if err != nil {
 			if flags.Changed("config-file") || !os.IsNotExist(err) {
@@ -516,6 +524,7 @@ func (cli *DaemonCli) initMiddlewares(s *apiserver.Server, cfg *apiserver.Config
 	return nil
 }
 
+// 获取平台相关的配置
 func (cli *DaemonCli) getRemoteOptions() ([]libcontainerd.RemoteOption, error) {
 	opts := []libcontainerd.RemoteOption{}
 
@@ -527,6 +536,7 @@ func (cli *DaemonCli) getRemoteOptions() ([]libcontainerd.RemoteOption, error) {
 	return opts, nil
 }
 
+// 初始化docker server config对象
 func newAPIServerConfig(cli *DaemonCli) (*apiserver.Config, error) {
 	serverConfig := &apiserver.Config{
 		Logging:     true,
@@ -563,6 +573,11 @@ func newAPIServerConfig(cli *DaemonCli) (*apiserver.Config, error) {
 
 func loadListeners(cli *DaemonCli, serverConfig *apiserver.Config) ([]string, error) {
 	var hosts []string
+	/* daemon 可以监听多个地址
+	unix socket: 允许本地的client 来链接本daemon
+	tcp 地址：（一般为0.0.0.0：port）用来允许远程的client连接到本daemon
+
+	*/
 	for i := 0; i < len(cli.Config.Hosts); i++ {
 		var err error
 		if cli.Config.Hosts[i], err = dopts.ParseHost(cli.Config.TLS, cli.Config.Hosts[i]); err != nil {
@@ -575,13 +590,14 @@ func loadListeners(cli *DaemonCli, serverConfig *apiserver.Config) ([]string, er
 			return nil, fmt.Errorf("bad format %s, expected PROTO://ADDR", protoAddr)
 		}
 
-		proto := protoAddrParts[0]
+		proto := protoAddrParts[0] // unix 或者tcp
 		addr := protoAddrParts[1]
 
 		// It's a bad idea to bind to TCP without tlsverify.
 		if proto == "tcp" && (serverConfig.TLSConfig == nil || serverConfig.TLSConfig.ClientAuth != tls.RequireAndVerifyClientCert) {
 			logrus.Warn("[!] DON'T BIND ON ANY IP ADDRESS WITHOUT setting --tlsverify IF YOU DON'T KNOW WHAT YOU'RE DOING [!]")
 		}
+		// 创建相应的socket 并监听
 		ls, err := listeners.Init(proto, addr, serverConfig.SocketGroup, serverConfig.TLSConfig)
 		if err != nil {
 			return nil, err

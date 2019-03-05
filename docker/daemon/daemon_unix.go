@@ -1133,6 +1133,7 @@ func setupRemappedRoot(config *config.Config) (*idtools.IDMappings, error) {
 	return &idtools.IDMappings{}, nil
 }
 
+// 创建daemon 的root目录，并且保证711权限
 func setupDaemonRoot(config *config.Config, rootDir string, rootIDs idtools.IDPair) error {
 	config.Root = rootDir
 	// the docker root metadata directory needs to have execute permissions for all users (g+x,o+x)
@@ -1143,6 +1144,7 @@ func setupDaemonRoot(config *config.Config, rootDir string, rootIDs idtools.IDPa
 	// layer content subtrees.
 	if _, err := os.Stat(rootDir); err == nil {
 		// root current exists; verify the access bits are correct by setting them
+		// root 目录权限需要时711
 		if err = os.Chmod(rootDir, 0711); err != nil {
 			return err
 		}
@@ -1157,6 +1159,7 @@ func setupDaemonRoot(config *config.Config, rootDir string, rootIDs idtools.IDPa
 	// with any/all specified remapped root uid/gid options on the daemon creating
 	// a new subdirectory with ownership set to the remapped uid/gid (so as to allow
 	// `chdir()` to work for containers namespaced to that uid/gid)
+	// 如果用户的namespace 时enable 状态，创建root+/uid/gid 目录
 	if config.RemappedRoot != "" {
 		config.Root = filepath.Join(rootDir, fmt.Sprintf("%d.%d", rootIDs.UID, rootIDs.GID))
 		logrus.Debugf("Creating user namespaced daemon root: %s", config.Root)
@@ -1186,23 +1189,48 @@ func setupDaemonRoot(config *config.Config, rootDir string, rootIDs idtools.IDPa
 	return nil
 }
 
+// 主要用来在daemon shutdown d的时候删除所有unmount-on-shutdown下的需要清理的文件
+// 两种情况不需要清理：
+//	1. 在mount option 中含有 "shared:"或者“master:”等字段
+//	2. 当前root 的parent 挂载点为自己，则也不清理
 func setupDaemonRootPropagation(cfg *config.Config) error {
+	// 从/proc/self/mountinfo 文件中读取mount 信息以及相应的config
+	/*
+	   36 35 98:0 /mnt1 /mnt2 rw,noatime master:1 - ext3 /dev/root rw,errors=continue
+	   (1)(2)(3)   (4)   (5)      (6)      (7)   (8) (9)   (10)         (11)
+
+	   (1) mount ID:  unique identifier of the mount (may be reused after umount)
+	   (2) parent ID:  ID of parent (or of self for the top of the mount tree)
+	   (3) major:minor:  value of st_dev for files on filesystem
+	   (4) root:  root of the mount within the filesystem
+	   (5) mount point:  mount point relative to the process's root
+	   (6) mount options:  per mount options
+	   (7) optional fields:  zero or more fields of the form "tag[:value]"
+	   (8) separator:  marks the end of the optional fields
+	   (9) filesystem type:  name of filesystem of the form "type[.subtype]"
+	   (10) mount source:  filesystem specific information or "none"
+	   (11) super options:  per super block options
+	*/
+	//获得当前daemon root 目录的源挂载点
 	rootParentMount, options, err := getSourceMount(cfg.Root)
 	if err != nil {
 		return errors.Wrap(err, "error getting daemon root's parent mount")
 	}
 
 	var cleanupOldFile bool
+	// 拿到在daemon shutdown时需要unmount 的目录（也就是rootexecdir/unmount-on-shutdown目录）
 	cleanupFile := getUnmountOnShutdownPath(cfg)
 	defer func() {
 		if !cleanupOldFile {
 			return
 		}
+		// 删除所需需要清理的文件
 		if err := os.Remove(cleanupFile); err != nil && !os.IsNotExist(err) {
 			logrus.WithError(err).WithField("file", cleanupFile).Warn("could not clean up old root propagation unmount file")
 		}
 	}()
 
+	// 在mount option 中如果含有“share:”以及“master:”信息咋不清理
 	if hasMountinfoOption(options, sharedPropagationOption, slavePropagationOption) {
 		cleanupOldFile = true
 		return nil
@@ -1214,6 +1242,7 @@ func setupDaemonRootPropagation(cfg *config.Config) error {
 
 	// check the case where this may have already been a mount to itself.
 	// If so then the daemon only performed a remount and should not try to unmount this later.
+	// 如果当前root 目录的源挂载点为自己
 	if rootParentMount == cfg.Root {
 		cleanupOldFile = true
 		return nil

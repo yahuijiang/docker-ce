@@ -14,6 +14,7 @@ import (
 
 // Init creates new listeners for the server.
 // TODO: Clean up the fact that socketGroup and tlsConfig aren't always used.
+// 创建tcp 套接字或者unix 套接字来和client 进行通信
 func Init(proto, addr, socketGroup string, tlsConfig *tls.Config) ([]net.Listener, error) {
 	ls := []net.Listener{}
 

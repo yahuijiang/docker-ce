@@ -45,6 +45,7 @@ type DefaultService struct {
 
 // NewService returns a new instance of DefaultService ready to be
 // installed into an engine.
+// 创建新的registry 服务对象， 包含了所有的registry 服务的配置文件
 func NewService(options ServiceOptions) (*DefaultService, error) {
 	config, err := newServiceConfig(options)
 

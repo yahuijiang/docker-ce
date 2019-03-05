@@ -9,6 +9,7 @@ import (
 )
 
 // Store manages the plugin inventory in memory and on-disk
+
 type Store struct {
 	sync.RWMutex
 	plugins  map[string]*v2.Plugin
@@ -20,6 +21,11 @@ type Store struct {
 }
 
 // NewStore creates a Store.
+// store 用来管理插件，包括：
+//	1. storage
+//	2. network
+//	3. ..
+
 func NewStore() *Store {
 	return &Store{
 		plugins:  make(map[string]*v2.Plugin),

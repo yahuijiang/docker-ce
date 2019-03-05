@@ -19,8 +19,10 @@ var (
 	// Docker daemon by default always listens on the default unix socket
 	DefaultUnixSocket = "/var/run/docker.sock"
 	// DefaultTCPHost constant defines the default host string used by docker on Windows
+	// tcp://localhost:2375
 	DefaultTCPHost = fmt.Sprintf("tcp://%s:%d", DefaultHTTPHost, DefaultHTTPPort)
 	// DefaultTLSHost constant defines the default host string used by docker for TLS sockets
+	// // tcp://localhost:2376
 	DefaultTLSHost = fmt.Sprintf("tcp://%s:%d", DefaultHTTPHost, DefaultTLSHTTPPort)
 	// DefaultNamedPipe defines the default named pipe used by docker on Windows
 	DefaultNamedPipe = `//./pipe/docker_engine`
@@ -42,6 +44,12 @@ func ValidateHost(val string) (string, error) {
 }
 
 // ParseHost and set defaults for a Daemon host string
+/*  解析配置中的host信息
+1. 如果是unix socket 直接返回
+2. 如果是远程daemon 返回tcp://hostip:port 格式的host 信息
+
+
+*/
 func ParseHost(defaultToTLS bool, val string) (string, error) {
 	host := strings.TrimSpace(val)
 	if host == "" {
@@ -62,6 +70,8 @@ func ParseHost(defaultToTLS bool, val string) (string, error) {
 
 // parseDaemonHost parses the specified address and returns an address that will be used as the host.
 // Depending of the address specified, this may return one of the global Default* strings defined in hosts.go.
+// 例如： sudo dockerd -H unix:///var/run/docker.sock -H tcp://192.168.59.106 -H tcp://10.10.10.2
+// 支持deamon localhost 的unix 和远程daemon 的 tcp
 func parseDaemonHost(addr string) (string, error) {
 	addrParts := strings.SplitN(addr, "://", 2)
 	if len(addrParts) == 1 && addrParts[0] != "" {
@@ -102,6 +112,7 @@ func parseSimpleProtoAddr(proto, addr, defaultAddr string) (string, error) {
 // from tryAddr, or the contents of defaultAddr if tryAddr is a blank string.
 // tryAddr is expected to have already been Trim()'d
 // defaultAddr must be in the full `tcp://host:port` form
+// defaultAddr的默认值是： tcp://localhost:2375
 func ParseTCPAddr(tryAddr string, defaultAddr string) (string, error) {
 	if tryAddr == "" || tryAddr == "tcp://" {
 		return defaultAddr, nil

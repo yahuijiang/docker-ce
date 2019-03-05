@@ -26,7 +26,7 @@ type Config struct {
 	CorsHeaders string
 	Version     string
 	SocketGroup string
-	TLSConfig   *tls.Config
+	TLSConfig   *tls.Config // 用于支持http 请求
 }
 
 // Server contains instance details for the server
@@ -40,6 +40,7 @@ type Server struct {
 
 // New returns a new instance of the server based on the specified configuration.
 // It allocates resources which will be needed for ServeAPI(ports, unix-sockets).
+// 创建docker API server 对象
 func New(cfg *Config) *Server {
 	return &Server{
 		cfg: cfg,

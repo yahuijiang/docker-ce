@@ -36,6 +36,7 @@ func newDaemonCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolP("version", "v", false, "Print version information and quit")
 	flags.StringVar(&opts.configFile, "config-file", defaultDaemonConfigFile, "Daemon configuration file")
+	flags.StringVar(&opts.configFile, "config-file", defaultDaemonConfigFile, "Daemon configuration file")
 	opts.InstallFlags(flags)
 	installConfigFlags(opts.daemonConfig, flags)
 	installServiceFlags(flags)
@@ -43,6 +44,7 @@ func newDaemonCommand() *cobra.Command {
 	return cmd
 }
 
+// 程序入口
 func main() {
 	if reexec.Init() {
 		return

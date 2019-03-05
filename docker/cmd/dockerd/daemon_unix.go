@@ -104,6 +104,7 @@ func allocateDaemonPort(addr string) error {
 	return nil
 }
 
+// 阻挡发送错误的header 的请求
 func wrapListeners(proto string, ls []net.Listener) []net.Listener {
 	switch proto {
 	case "unix":

@@ -229,6 +229,7 @@ func Client(options Options) (*tls.Config, error) {
 }
 
 // Server returns a TLS configuration meant to be used by a server.
+// 返回https 的配置（也就是ca 等）
 func Server(options Options) (*tls.Config, error) {
 	tlsConfig := ServerDefault()
 	tlsConfig.ClientAuth = options.ClientAuth

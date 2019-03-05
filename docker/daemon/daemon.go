@@ -567,9 +567,11 @@ func (daemon *Daemon) IsSwarmCompatible() error {
 // requests from the webserver.
 // 初始化daemon
 func NewDaemon(config *config.Config, registryService registry.Service, containerdRemote libcontainerd.Remote, pluginStore *plugin.Store) (daemon *Daemon, err error) {
+	// 设置网络最大的mtu
 	setDefaultMtu(config)
 
 	// Ensure that we have a correct root key limit for launching containers.
+	// 设置系统中key 的限制，将key limit 设置为至少10000， bytelimit 设置为至少250k
 	if err := ModifyRootKeyLimit(); err != nil {
 		logrus.Warnf("unable to modify root key limit, number of containers could be limited by this quota: %v", err)
 	}
@@ -1261,6 +1263,7 @@ func (daemon *Daemon) PluginGetter() *plugin.Store {
 }
 
 // CreateDaemonRoot creates the root for the daemon
+// 创建daemon 的root 工作目录
 func CreateDaemonRoot(config *config.Config) error {
 	// get the canonical path to the Docker root directory
 	var realRoot string

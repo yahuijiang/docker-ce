@@ -21,6 +21,8 @@ const (
 // ModifyRootKeyLimit checks to see if the root key limit is set to
 // at least 1000000 and changes it to that limit along with the maxbytes
 // allocated to the keys at a 25 to 1 multiplier.
+// 读取系统中用户可以拥有的最大的key 数量以及每个key大小的限额。
+// 并且设置每个key 大小限额的限制设置为目前系统的25呗
 func ModifyRootKeyLimit() error {
 	value, err := readRootKeyLimit(rootKeyFile)
 	if err != nil {
